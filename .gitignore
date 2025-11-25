@@ -49,3 +49,6 @@ Thumbs.db
 .cache/
 temp/
 tmp/
+
+# Technical design documents
+UNIFIED_TECHNICAL_DESIGN*.md
