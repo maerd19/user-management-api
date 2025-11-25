@@ -1,98 +1,225 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend - NestJS API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+RESTful API for user management with JWT authentication built with NestJS and PostgreSQL.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- **Framework**: NestJS 11
+- **Language**: TypeScript (strict mode)
+- **Database**: PostgreSQL 16
+- **ORM**: TypeORM 0.3
+- **Validation**: class-validator, class-transformer
+- **Testing**: Jest
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Project Structure
 
-## Project setup
-
-```bash
-$ npm install
+```
+src/
+├── config/                 # Configuration files
+│   ├── app.config.ts      # Application config
+│   └── database.config.ts # Database config
+├── database/
+│   └── migrations/        # Database migrations
+├── modules/               # Feature modules
+│   └── users/
+│       └── entities/      # TypeORM entities
+├── shared/                # Shared utilities
+│   ├── filters/          # Exception filters
+│   └── interceptors/     # Response interceptors
+├── app.module.ts         # Root module
+├── data-source.ts        # TypeORM data source
+└── main.ts              # Application entry point
 ```
 
-## Compile and run the project
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run start:dev` | Start development server with hot reload |
+| `npm run build` | Build for production |
+| `npm run start:prod` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run unit tests |
+| `npm run test:e2e` | Run end-to-end tests |
+| `npm run test:cov` | Run tests with coverage |
+| `npm run migration:generate -- src/database/migrations/MigrationName` | Generate migration |
+| `npm run migration:create -- src/database/migrations/MigrationName` | Create empty migration |
+| `npm run migration:run` | Run pending migrations |
+| `npm run migration:revert` | Revert last migration |
+| `npm run migration:show` | Show migration status |
+
+## Environment Variables
+
+Create a `.env` file in the backend directory:
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `NODE_ENV` | Environment (development/production) | `development` | No |
+| `PORT` | Server port | `3000` | No |
+| `API_PREFIX` | Global API prefix | `api` | No |
+| `DB_HOST` | Database host | `localhost` | Yes |
+| `DB_PORT` | Database port | `5432` | Yes |
+| `DB_USERNAME` | Database username | `postgres` | Yes |
+| `DB_PASSWORD` | Database password | `postgres` | Yes |
+| `DB_DATABASE` | Database name | `user_management` | Yes |
+| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` | Yes |
+
+See `.env.example` for a complete template.
+
+## Installation
 
 ```bash
-# development
-$ npm run start
+# Install dependencies
+npm install
 
-# watch mode
-$ npm run start:dev
+# Copy environment variables
+cp .env.example .env
 
-# production mode
-$ npm run start:prod
+# Update .env with your database credentials
 ```
 
-## Run tests
+## Database Setup
+
+### Option 1: Using Docker (Recommended)
 
 ```bash
-# unit tests
-$ npm run test
+# Start PostgreSQL container from project root
+cd ..
+docker-compose up -d postgres
 
-# e2e tests
-$ npm run test:e2e
+# Wait for database to be ready (check with docker-compose ps)
+# Then run migrations
+cd backend
+npm run migration:run
 
-# test coverage
-$ npm run test:cov
+# Verify migrations
+npm run migration:show
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Option 2: Local PostgreSQL
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Create database
+createdb user_management
+
+# Run migrations
+npm run migration:run
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Running the Application
 
-## Resources
+```bash
+# Development mode (with hot reload)
+npm run start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+# Production mode
+npm run build
+npm run start:prod
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+The API will be available at `http://localhost:3000/api`
 
-## Support
+## Testing
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# Unit tests
+npm run test
 
-## Stay in touch
+# E2E tests
+npm run test:e2e
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Test coverage
+npm run test:cov
+```
 
-## License
+## API Documentation
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+API documentation will be available in the project root at `docs/API_DOCUMENTATION.md`
+
+### Health Check
+
+```bash
+# Basic health check
+curl http://localhost:3000/api
+```
+
+## Architecture
+
+### Modular Structure
+
+The application follows NestJS modular architecture:
+
+- **Config Module**: Environment configuration
+- **Database Module**: TypeORM integration
+- **Users Module**: User entity and operations
+- **Auth Module**: Authentication
+
+### Global Components
+
+- **Exception Filter**: Consistent error responses
+- **Transform Interceptor**: Standardized response format
+- **Validation Pipe**: Automatic DTO validation
+
+### Response Format
+
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Optional message"
+}
+```
+
+Error responses:
+
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": ["Error message"],
+  "timestamp": "2025-11-25T10:30:00.000Z"
+}
+```
+
+## Database Migrations
+
+### Creating Migrations
+
+```bash
+# Auto-generate from entity changes
+npm run migration:generate -- src/database/migrations/AddUserRole
+
+# Create empty migration
+npm run migration:create -- src/database/migrations/SeedUsers
+```
+
+### Running Migrations
+
+```bash
+# Run all pending migrations
+npm run migration:run
+
+# Revert last migration
+npm run migration:revert
+
+# Show migration status
+npm run migration:show
+```
+
+## Security Features
+
+- Input validation with class-validator
+- SQL injection prevention (TypeORM parameterized queries)
+- CORS configuration
+- Environment variable validation
+- Password hashing
+- JWT authentication
+
+## Code Quality
+
+- **TypeScript**: Strict mode enabled
+- **ESLint**: Code linting
+- **Prettier**: Code formatting
+- **Jest**: Unit and E2E testing
