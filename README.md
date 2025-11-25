@@ -5,7 +5,9 @@
 
 > Full-stack user management application with JWT authentication
 
-## 🚧 Project Status: In Development
+## 🚧 Project Status: 70% Complete
+
+Currently at **Phase 8** of 10-phase development plan. Backend authentication, user management, and frontend UI are fully functional. Now adding documentation and polish.
 
 ## 📋 Table of Contents
 
@@ -26,29 +28,38 @@
 
 ## ✨ Features
 
-- 🚧 User Registration with validation (Coming soon...)
-- 🚧 User Login with JWT tokens (Coming soon...)
-- 🚧 Access/Refresh token strategy (Coming soon...)
-- 🚧 Profile management (Coming soon...)
-- 🚧 Users list with pagination (Coming soon...)
-- 🚧 Protected routes (Coming soon...)
-- 🚧 Dockerized deployment (Coming soon...)
-- 🚧 CI/CD pipeline (Coming soon...)
+- ✅ User Registration with email/password validation
+- ✅ User Login with JWT access and refresh tokens
+- ✅ Dual token strategy (15m access, 7d refresh)
+- ✅ Profile management (view and update)
+- ✅ User listing with pagination
+- ✅ Protected routes with JWT guards
+- ✅ Request/response logging with Winston
+- ✅ Interactive Swagger API documentation
+- ✅ Responsive React UI with Tailwind CSS
+- ✅ Global error handling and validation
+- 🚧 Comprehensive test coverage (Coming soon)
+- 🚧 Docker deployment configuration (Coming soon)
+- 🚧 CI/CD pipeline with GitHub Actions (Coming soon)
 
 ## 🛠 Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Backend Framework | NestJS + TypeScript |
-| Frontend Framework | React 18 + TypeScript + Vite |
+| Backend Framework | NestJS 11 + TypeScript 5.7 |
+| Frontend Framework | React 18 + TypeScript + Vite 7 |
 | Database | PostgreSQL 16 |
-| ORM | TypeORM |
-| Authentication | JWT (Passport.js) |
+| ORM | TypeORM 0.3 |
+| Authentication | JWT (Passport.js) + bcrypt |
+| Logging | Winston 3 |
+| API Documentation | Swagger/OpenAPI |
 | State Management | Zustand |
-| Styling | Tailwind CSS |
+| Styling | Tailwind CSS v4 |
+| HTTP Client | Axios |
+| Routing | React Router v6 |
 | Containerization | Docker + Docker Compose |
-| CI/CD | GitHub Actions |
-| Hosting | Railway + Vercel |
+| CI/CD | GitHub Actions (planned) |
+| Hosting | Railway + Vercel (planned) |
 
 ## 📦 Prerequisites
 
@@ -86,18 +97,41 @@ npm run dev
 ```
 
 Access the application at:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000/api
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3000/api
+- **API Docs**: http://localhost:3000/api/docs (Swagger UI)
 
 ## 🔐 Environment Variables
 
-### Backend
+### Backend (`backend/.env`)
 
-See `backend/.env.example` for all available environment variables.
+```bash
+# Server
+PORT=3000
+NODE_ENV=development
 
-### Frontend
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_DATABASE=user_management
 
-See `frontend/.env.example` for all available environment variables.
+# JWT Configuration
+JWT_ACCESS_SECRET=your-super-secret-access-key-change-in-production
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-in-production
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
+```
+
+### Frontend (`frontend/.env`)
+
+```bash
+VITE_API_URL=http://localhost:3000/api
+```
 
 ## 🗄 Database Setup
 
@@ -138,41 +172,90 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ## 📚 API Documentation
 
-Full API documentation will be available at `docs/API_DOCUMENTATION.md` (Coming soon...)
+Interactive Swagger documentation is available at **http://localhost:3000/api/docs** when the backend is running.
 
-### Endpoints Summary
+### Authentication Endpoints
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | /api/auth/register | No | Register new user |
-| POST | /api/auth/login | No | Login and get tokens |
-| POST | /api/auth/refresh | Token | Refresh access token |
-| GET | /api/users/profile | Yes | Get current user profile |
-| PUT | /api/users/profile | Yes | Update current user profile |
-| GET | /api/users | Yes | List all users (paginated) |
+| POST | `/api/auth/register` | No | Register new user with email, password, firstName, lastName |
+| POST | `/api/auth/login` | No | Login and receive access + refresh tokens |
+| POST | `/api/auth/refresh` | Refresh Token | Exchange refresh token for new access token |
+
+### User Management Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/users/profile` | Access Token | Get current authenticated user profile |
+| PATCH | `/api/users/profile` | Access Token | Update current user (firstName, lastName) |
+| GET | `/api/users` | Access Token | List all users with pagination (page, limit) |
+| GET | `/api/users/:id` | Access Token | Get user by UUID |
+| PATCH | `/api/users/:id` | Access Token | Update user by UUID |
+| DELETE | `/api/users/:id` | Access Token | Delete user by UUID |
+
+### Example Requests
+
+**Register:**
+```bash
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123!",
+    "firstName": "John",
+    "lastName": "Doe"
+  }'
+```
+
+**Login:**
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123!"
+  }'
+```
+
+**Get Profile:**
+```bash
+curl -X GET http://localhost:3000/api/users/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
 
 ## 📁 Project Structure
 
 ```
 aura/
-├── backend/              # NestJS backend application
+├── backend/                    # NestJS backend application
 │   ├── src/
-│   │   ├── modules/     # Feature modules
-│   │   ├── config/      # Configuration
-│   │   ├── database/    # Migrations
-│   │   └── shared/      # Shared utilities
-│   └── test/            # Tests
-├── frontend/            # React frontend application
+│   │   ├── modules/           # Feature modules
+│   │   │   ├── auth/         # Authentication (register, login, refresh)
+│   │   │   └── users/        # User management (CRUD, profile)
+│   │   ├── config/           # Configuration files (app, database, jwt, logger)
+│   │   ├── database/         # TypeORM migrations and entities
+│   │   └── shared/           # Shared utilities (filters, interceptors, decorators)
+│   ├── logs/                 # Application logs (gitignored)
+│   └── test/                 # E2E tests
+├── frontend/                  # React frontend application
 │   ├── src/
-│   │   ├── components/  # React components
-│   │   ├── pages/       # Page components
-│   │   ├── hooks/       # Custom hooks
-│   │   ├── services/    # API services
-│   │   └── store/       # State management
-│   └── public/          # Static assets
-├── docker-compose.yml   # Docker orchestration
-├── .gitignore          # Git ignore rules
-└── README.md           # This file
+│   │   ├── components/       # React components
+│   │   │   ├── ui/          # Reusable UI components (Button, Input, Card)
+│   │   │   ├── DashboardLayout.tsx
+│   │   │   └── ProtectedRoute.tsx
+│   │   ├── pages/           # Page components
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── RegisterPage.tsx
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── ProfilePage.tsx
+│   │   │   └── UsersPage.tsx
+│   │   ├── store/           # Zustand state management
+│   │   ├── lib/             # Utilities and API client
+│   │   └── App.tsx          # Main app with routing
+│   └── public/              # Static assets
+├── docker-compose.yml        # Docker orchestration
+├── .gitignore               # Git ignore rules
+└── README.md                # This file
 ```
 
 ## 🧪 Testing
@@ -180,54 +263,70 @@ aura/
 ```bash
 # Backend tests
 cd backend
-npm run test           # Unit tests
-npm run test:e2e      # E2E tests
-npm run test:cov      # Coverage report
+npm run test              # Unit tests
+npm run test:watch        # Watch mode
+npm run test:e2e         # E2E tests
+npm run test:cov         # Coverage report
 
-# Frontend tests
+# Frontend tests (coming soon)
 cd frontend
-npm run test          # Unit tests
-npm run test:coverage # Coverage report
+npm run test             # Unit tests
+npm run test:coverage    # Coverage report
 ```
+
+**Note**: Comprehensive test coverage is planned for Phase 8.
 
 ## 🚢 Deployment
 
-Detailed deployment instructions coming soon in `DEPLOYMENT.md`.
+**Status**: Deployment configuration in progress (Phase 9-10)
 
-### Quick Deploy
+Planned deployment strategy:
+- **Backend API**: Railway (PostgreSQL + NestJS)
+- **Frontend**: Vercel (Static hosting with SSG)
+- **CI/CD**: GitHub Actions for automated testing and deployment
 
-- **Backend**: Railway (PostgreSQL + API)
-- **Frontend**: Vercel (Static hosting)
+Detailed deployment guide will be available in Phase 10.
 
 ## 🏗 Technical Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Backend Framework | NestJS | Built-in modularity, DI, TypeScript support |
-| Database | PostgreSQL | Robust, ACID-compliant, excellent TypeORM support |
-| ORM | TypeORM | Decorator-based entities, migration support |
-| Authentication | JWT (Access + Refresh) | Stateless, scalable, industry standard |
-| Password Hashing | bcrypt (12 rounds) | Proven security, adjustable work factor |
-| Frontend Framework | React + TypeScript | Component-based, type safety, large ecosystem |
-| State Management | Zustand | Lightweight, simple API, no boilerplate |
-| Styling | Tailwind CSS | Utility-first, rapid development |
-| Build Tool | Vite | Fast HMR, modern tooling |
-| Containerization | Docker | Reproducibility, deployment consistency |
+| Backend Framework | NestJS 11 | Enterprise-grade architecture, built-in DI, excellent TypeScript support, modular design |
+| Database | PostgreSQL 16 | ACID compliance, robust features, excellent TypeORM support, production-ready |
+| ORM | TypeORM 0.3 | Decorator-based entities, migration support, active maintenance |
+| Authentication | JWT (Access 15m + Refresh 7d) | Stateless, scalable, industry standard, enhanced security with dual tokens |
+| Password Hashing | bcrypt (12 rounds) | Proven security, adaptive work factor, resistant to rainbow tables |
+| Logging | Winston 3 | Structured logging, multiple transports, production-grade |
+| API Documentation | Swagger/OpenAPI | Interactive docs, type-safe, industry standard |
+| Frontend Framework | React 18 + TypeScript | Component reusability, strong typing, large ecosystem, excellent tooling |
+| State Management | Zustand | Minimal boilerplate, simple API, no providers needed, <1KB bundle |
+| Styling | Tailwind CSS v4 | Utility-first, rapid prototyping, tree-shaking, consistent design system |
+| Build Tool | Vite 7 | Lightning-fast HMR, modern tooling, optimized production builds |
+| HTTP Client | Axios | Interceptor support, automatic JSON handling, broad browser support |
+| Routing | React Router v6 | Nested routes, data loading, modern API |
 
-For detailed architectural decisions, see `docs/ARCHITECTURE_DECISIONS.md` (Coming soon...)
+For detailed architectural decision records (ADRs), see the commits and inline documentation.
 
 ## 🔮 Future Improvements
 
-- Email verification
-- Password reset functionality
-- User avatar upload
-- Role-based access control (RBAC)
-- User search and filtering
-- Swagger/OpenAPI documentation
-- Redis caching
-- Monitoring and alerting
-- Performance testing
-- Security scanning
+**Planned Enhancements:**
+- Email verification with confirmation tokens
+- Password reset with secure email flow
+- User avatar upload with S3/CloudFlare R2
+- Role-based access control (RBAC) with admin/user roles
+- User search and advanced filtering
+- Rate limiting with Redis
+- Comprehensive test coverage (unit + integration + E2E)
+- Performance monitoring with APM tools
+- Security headers and CSRF protection
+- Database backups and disaster recovery
+- Multi-language support (i18n)
+
+**Phase Roadmap:**
+- ✅ Phase 1-7: Core functionality (70%)
+- 🔄 Phase 8: Documentation and polish (in progress)
+- ⏳ Phase 9: Containerization and CI/CD
+- ⏳ Phase 10: Production deployment
 
 ## 📄 License
 
