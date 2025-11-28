@@ -38,6 +38,10 @@ RUN npm ci --only=production && \
 # Copy built files from builder stage (includes compiled migrations)
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 
+# Copy entrypoint script
+COPY backend/docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 # Create logs directory
 RUN mkdir -p logs && chown -R nodejs:nodejs logs
 
@@ -51,5 +55,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD node -e "require('http').get('http://localhost:3000/', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-# Start application with dumb-init
-CMD ["dumb-init", "node", "dist/main"]
+# Start application with entrypoint script (runs migrations first)
+CMD ["./docker-entrypoint.sh"]
