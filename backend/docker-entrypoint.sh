@@ -2,7 +2,7 @@
 set -e
 
 echo "🔄 Running database migrations..."
-if npm run migration:run; then
+if node dist/data-source.js; then
   echo "✅ Migrations completed successfully"
 else
   echo "⚠️  Migration failed, but continuing..."

@@ -26,3 +26,21 @@ if (process.env.DATABASE_URL) {
 }
 
 export default new DataSource(dataSourceConfig);
+
+// If running directly (for migrations), initialize and run
+if (require.main === module) {
+  const AppDataSource = new DataSource(dataSourceConfig);
+  
+  AppDataSource.initialize()
+    .then(async () => {
+      console.log('✅ Data Source initialized');
+      await AppDataSource.runMigrations();
+      console.log('✅ Migrations completed');
+      await AppDataSource.destroy();
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('❌ Error during migration:', error);
+      process.exit(1);
+    });
+}
