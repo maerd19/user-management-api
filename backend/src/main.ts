@@ -78,6 +78,12 @@ async function bootstrap() {
 
   const port =
     process.env.PORT || configService.get<number>('app.port') || 3000;
+  
+  console.log('DEBUG - PORT from env:', process.env.PORT);
+  console.log('DEBUG - PORT from config:', configService.get<number>('app.port'));
+  console.log('DEBUG - Final port:', port);
+  console.log('DEBUG - Listening on 0.0.0.0:', port);
+  
   await app.listen(port, '0.0.0.0');
 
   const logger = app.get<Logger>(WINSTON_MODULE_NEST_PROVIDER);
