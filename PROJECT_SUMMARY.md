@@ -57,6 +57,9 @@ A production-ready, full-stack user management application built with modern tec
 - ✅ Optimized Docker images (Alpine Linux)
 - ✅ Non-root container users
 - ✅ Health checks for all services
+- ✅ Automatic database migrations on deployment
+- ✅ Railway deployment with PostgreSQL
+- ✅ Vercel deployment for frontend
 
 ### Documentation
 - ✅ Comprehensive README with setup instructions
@@ -403,9 +406,17 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Status:** ✅ Backend deployed successfully to Railway. Ready for frontend Vercel deployment.  
-**Next Steps:** Deploy frontend to Vercel, connect to Railway backend API.  
-**Live API:** https://user-management-api-production-6366.up.railway.app/api
+**Status:** ✅ Fully deployed and operational  
+**Backend:** https://user-management-api-production-6366.up.railway.app/api  
+**Frontend:** https://user-management-frontend-lake.vercel.app  
+**API Docs:** https://user-management-api-production-6366.up.railway.app/api/docs  
+
+**Features:**
+- ✅ Automatic database migrations on deployment
+- ✅ JWT authentication with token refresh
+- ✅ User CRUD operations with pagination
+- ✅ Interactive API documentation (Swagger)
+- ✅ Production-ready with SSL and CORS configured
 
 ---
 

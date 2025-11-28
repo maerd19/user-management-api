@@ -121,13 +121,26 @@ Railway provides PostgreSQL + Node.js hosting with automatic deployments from Gi
    - Railway automatically deploys on push to `master` branch
    - Or deploy manually: `railway up` (from backend directory)
 
-8. **Verify Deployment**
+8. **Migrations Run Automatically**
+   - Railway runs migrations on every deployment via `docker-entrypoint.sh`
+   - Check deployment logs to verify:
+     ```
+     ✅ Data Source initialized
+     ✅ Migrations completed
+     ```
+
+9. **Verify Deployment**
    ```bash
    # Test API
    curl https://your-app.up.railway.app/api
    
    # View Swagger docs
    open https://your-app.up.railway.app/api/docs
+   
+   # Test registration
+   curl -X POST https://your-app.up.railway.app/api/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{"email":"test@example.com","password":"Test123!","firstName":"Test","lastName":"User"}'
    ```
 
 ### Important Configuration Notes
@@ -153,6 +166,11 @@ Railway assigns ports dynamically via `$PORT` environment variable. The backend 
 ```typescript
 const port = process.env.PORT || configService.get<number>('app.port') || 3000;
 ```
+
+**Custom Start Command:**
+⚠️ **IMPORTANT:** Do NOT set a "Custom Start Command" in Railway Settings → Deploy.
+Leave it empty so Railway uses the Dockerfile's `CMD` which runs `docker-entrypoint.sh`.
+This script executes migrations before starting the app.
 
 ### Troubleshooting
 
@@ -234,17 +252,47 @@ Connect your GitHub repository to Vercel for automatic deployments:
 
 ## Database Migrations
 
-### Railway
+### Automatic Migrations (Railway)
+
+Migrations run **automatically on every deployment** via the `docker-entrypoint.sh` script:
 
 ```bash
-# Run migrations on Railway
-railway run npm run migration:run
+# Migrations are executed before app starts
+# Check deployment logs for:
+✅ Data Source initialized
+✅ Migrations completed
+```
 
-# Create new migration
-railway run npm run migration:generate -- src/database/migrations/MigrationName
+### Manual Migration Management (Local)
 
-# Revert last migration
-railway run npm run migration:revert
+```bash
+# Create new migration locally
+npm run migration:generate -- src/database/migrations/MigrationName
+
+# Run migrations locally
+npm run migration:run
+
+# Revert last migration locally
+npm run migration:revert
+
+# Commit and push - Railway will auto-apply on deploy
+git add .
+git commit -m "feat: add new migration"
+git push origin master
+```
+
+### Manual Migrations on Railway (if needed)
+
+```bash
+# Link to Railway project
+cd backend
+railway link
+
+# Open Railway shell
+railway shell
+
+# Inside Railway shell, run:
+node dist/data-source.js
 ```
 
 ### Docker
@@ -320,16 +368,25 @@ railway variables | grep CORS
 railway variables set CORS_ORIGIN=https://your-app.vercel.app
 ```
 
-**4. Migrations fail**
+**4. Migrations fail on deployment**
 ```bash
-# Check current migration status
-railway run npm run migration:show
+# Check deployment logs for migration errors
+# Common issues:
 
-# Try reverting last migration
-railway run npm run migration:revert
+# Issue: "relation 'users' does not exist"
+# Solution: Migrations didn't run - check logs for:
+#   - ✅ Migrations completed
+#   - If missing, redeploy or run manually
 
-# Re-run migrations
-railway run npm run migration:run
+# Issue: "Cannot find module 'dotenv'"
+# Solution: data-source.ts should skip dotenv in production:
+#   if (process.env.NODE_ENV !== 'production') {
+#     require('dotenv').config();
+#   }
+
+# Manual migration if auto-migration fails:
+railway shell
+node dist/data-source.js
 ```
 
 **5. Frontend can't reach backend**
