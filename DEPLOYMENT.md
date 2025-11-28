@@ -64,69 +64,112 @@ docker-compose -f docker-compose.prod.yml down -v
 
 ## Railway Deployment (Backend)
 
-Railway provides PostgreSQL + Node.js hosting with automatic deployments.
+Railway provides PostgreSQL + Node.js hosting with automatic deployments from GitHub.
 
 ### Setup Steps
 
-1. **Create Railway Project**
+1. **Install Railway CLI**
    ```bash
-   # Install Railway CLI
    npm install -g @railway/cli
-   
-   # Login
    railway login
-   
-   # Initialize project
-   cd backend
-   railway init
    ```
 
-2. **Add PostgreSQL Database**
-   - Go to Railway dashboard
-   - Click "New" → "Database" → "PostgreSQL"
-   - Note the connection string
+2. **Create New Project in Railway Dashboard**
+   - Go to https://railway.app
+   - Click "New Project"
+   - Select "Deploy from GitHub Repo"
+   - Choose your `user-management-api` repository
+   - Railway will auto-detect the monorepo structure
 
-3. **Configure Environment Variables**
+3. **Configure Service Settings**
+   - In Settings → Source:
+     - **Root Directory**: Leave EMPTY (blank)
+     - **Watch Paths**: Leave empty
+   - Railway will use the root `Dockerfile` which builds from `backend/`
+
+4. **Add PostgreSQL Database**
+   - In your project, click "+ New"
+   - Select "Database" → "PostgreSQL"
+   - Railway auto-generates `DATABASE_URL` and other connection variables
+   - These are automatically shared with your backend service
+
+5. **Configure Backend Environment Variables**
    
-   In Railway dashboard, add these variables:
-   ```
+   In Railway dashboard (Variables tab), add these variables:
+   ```bash
+   # Generate secrets with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   JWT_ACCESS_SECRET=<32-char-secret>
+   JWT_REFRESH_SECRET=<different-32-char-secret>
+   JWT_ACCESS_EXPIRATION=15m
+   JWT_REFRESH_EXPIRATION=7d
    NODE_ENV=production
-   PORT=3000
-   DATABASE_URL=<provided by Railway>
-   JWT_ACCESS_SECRET=<your-secret>
-   JWT_REFRESH_SECRET=<your-secret>
-   CORS_ORIGIN=https://your-frontend.vercel.app
+   CORS_ORIGIN=*
    ```
+   
+   **Important:** 
+   - Do NOT add `PORT` - Railway provides this automatically
+   - Do NOT add `DATABASE_URL` - Auto-provided by PostgreSQL service
+   - Do NOT add individual DB variables (DB_HOST, DB_PORT, etc.) - Use `DATABASE_URL`
 
-4. **Deploy**
+6. **Generate Public Domain**
+   - Go to Settings → Networking
+   - Click "Generate Domain"
+   - Enter port: `8080` (Railway auto-assigns, but confirm in logs)
+   - Copy the generated URL: `https://your-app.up.railway.app`
+
+7. **Deploy**
+   - Railway automatically deploys on push to `master` branch
+   - Or deploy manually: `railway up` (from backend directory)
+
+8. **Verify Deployment**
    ```bash
-   railway up
+   # Test API
+   curl https://your-app.up.railway.app/api
+   
+   # View Swagger docs
+   open https://your-app.up.railway.app/api/docs
    ```
 
-5. **Run Migrations**
-   ```bash
-   railway run npm run migration:run
-   ```
+### Important Configuration Notes
 
-### Railway Configuration
+**Root Dockerfile:**
+The project uses a root `Dockerfile` that copies from `backend/` directory:
+```dockerfile
+# Copies backend package files
+COPY backend/package*.json ./
 
-Create `railway.json` in backend root:
-
-```json
-{
-  "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm ci && npm run build"
-  },
-  "deploy": {
-    "startCommand": "node dist/main.js",
-    "healthcheckPath": "/api",
-    "healthcheckTimeout": 100,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3
-  }
-}
+# Copies backend source
+COPY backend/ .
 ```
+
+**Database Configuration:**
+The backend `database.config.ts` supports both development and production:
+- **Development**: Uses individual env vars (DB_HOST, DB_PORT, etc.)
+- **Production**: Uses `DATABASE_URL` from Railway
+- SSL is automatically enabled in production
+
+**Port Configuration:**
+Railway assigns ports dynamically via `$PORT` environment variable. The backend reads:
+```typescript
+const port = process.env.PORT || configService.get<number>('app.port') || 3000;
+```
+
+### Troubleshooting
+
+**Build fails with "Dockerfile not found":**
+- Ensure Root Directory is EMPTY in Settings
+- Dockerfile must be in repository root
+- Push changes to trigger rebuild
+
+**Connection refused errors:**
+- Check app is listening on `0.0.0.0` not `localhost`
+- Verify PORT is not hardcoded
+- Check public domain port matches app port
+
+**Database connection timeout:**
+- Verify `DATABASE_URL` is set (check Variables tab)
+- Ensure PostgreSQL service is running
+- Check database service is in same project
 
 ## Vercel Deployment (Frontend)
 
@@ -171,16 +214,17 @@ Connect your GitHub repository to Vercel for automatic deployments:
 
 ### Backend (Railway)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment | `production` |
-| `PORT` | Server port | `3000` |
-| `DATABASE_URL` | PostgreSQL connection | Auto-provided by Railway |
-| `JWT_ACCESS_SECRET` | Access token secret (32+ chars) | `your-secret-here` |
-| `JWT_REFRESH_SECRET` | Refresh token secret (32+ chars) | `different-secret` |
-| `JWT_ACCESS_EXPIRATION` | Access token lifetime | `15m` |
-| `JWT_REFRESH_EXPIRATION` | Refresh token lifetime | `7d` |
-| `CORS_ORIGIN` | Allowed frontend origins | `https://app.vercel.app` |
+| Variable | Description | Example | Required |
+|----------|-------------|---------|----------|
+| `DATABASE_URL` | PostgreSQL connection | Auto-provided by Railway | ✅ Auto |
+| `JWT_ACCESS_SECRET` | Access token secret (32+ chars) | Generate with crypto | ✅ Manual |
+| `JWT_REFRESH_SECRET` | Refresh token secret (32+ chars) | Generate with crypto | ✅ Manual |
+| `JWT_ACCESS_EXPIRATION` | Access token lifetime | `15m` | ✅ Manual |
+| `JWT_REFRESH_EXPIRATION` | Refresh token lifetime | `7d` | ✅ Manual |
+| `NODE_ENV` | Environment | `production` | ✅ Manual |
+| `CORS_ORIGIN` | Allowed frontend origins | `*` or `https://app.vercel.app` | ✅ Manual |
+| `PORT` | Server port | Auto-provided by Railway | ❌ Don't set |
+| `DB_HOST`, `DB_PORT`, etc. | Individual DB vars | Not needed with DATABASE_URL | ❌ Don't set |
 
 ### Frontend (Vercel)
 

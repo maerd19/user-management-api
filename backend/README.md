@@ -50,19 +50,27 @@ src/
 
 ## Environment Variables
 
-Create a `.env` file in the backend directory:
+Create a `.env` file in the backend directory for local development:
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `NODE_ENV` | Environment (development/production) | `development` | No |
-| `PORT` | Server port | `3000` | No |
-| `API_PREFIX` | Global API prefix | `api` | No |
-| `DB_HOST` | Database host | `localhost` | Yes |
-| `DB_PORT` | Database port | `5432` | Yes |
-| `DB_USERNAME` | Database username | `postgres` | Yes |
-| `DB_PASSWORD` | Database password | `postgres` | Yes |
-| `DB_DATABASE` | Database name | `user_management` | Yes |
-| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` | Yes |
+| Variable | Description | Default | Dev | Production |
+|----------|-------------|---------|-----|------------|
+| `NODE_ENV` | Environment | `development` | ✅ | ✅ |
+| `PORT` | Server port | `3000` | ✅ | Auto (Railway) |
+| `API_PREFIX` | Global API prefix | `api` | ✅ | Auto |
+| `DB_HOST` | Database host | `localhost` | ✅ | - |
+| `DB_PORT` | Database port | `5432` | ✅ | - |
+| `DB_USERNAME` | Database username | `postgres` | ✅ | - |
+| `DB_PASSWORD` | Database password | `postgres` | ✅ | - |
+| `DB_DATABASE` | Database name | `user_management` | ✅ | - |
+| `DATABASE_URL` | Full connection string | - | - | ✅ (Railway) |
+| `JWT_ACCESS_SECRET` | Access token secret | Required | ✅ | ✅ |
+| `JWT_REFRESH_SECRET` | Refresh token secret | Required | ✅ | ✅ |
+| `JWT_ACCESS_EXPIRATION` | Access token lifetime | `15m` | ✅ | ✅ |
+| `JWT_REFRESH_EXPIRATION` | Refresh token lifetime | `7d` | ✅ | ✅ |
+| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` | ✅ | ✅ |
+
+**Development:** Uses individual DB variables (DB_HOST, DB_PORT, etc.)  
+**Production (Railway):** Uses `DATABASE_URL` connection string with SSL
 
 See `.env.example` for a complete template.
 
