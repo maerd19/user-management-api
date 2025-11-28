@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
-echo "🔄 Running database migrations..."
+echo "Running database migrations..."
 if node dist/data-source.js; then
-  echo "✅ Migrations completed successfully"
+  echo "Migrations completed successfully"
 else
-  echo "⚠️  Migration failed, but continuing..."
+  echo "Warning: Migration failed, but continuing..."
 fi
 
-echo "🚀 Starting application..."
+echo "Starting application..."
 exec dumb-init node dist/main

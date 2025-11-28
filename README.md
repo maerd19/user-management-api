@@ -10,34 +10,34 @@
 🌐 Frontend: https://user-management-frontend-lake.vercel.app  
 📚 API Docs: https://user-management-api-production-6366.up.railway.app/api/docs
 
-## 🎯 Project Status
+## Project Status
 
-**✅ 100% Complete - Production Ready**
+**100% Complete - Production Ready**
 
 All 10 development phases completed and deployed:
-- ✅ **Phase 1-7**: Core functionality (Auth, Users, Frontend, Logging)
-- ✅ **Phase 8**: Documentation (README, Swagger, Winston logging)
-- ✅ **Phase 9**: Containerization & CI/CD (Docker, GitHub Actions)
-- ✅ **Phase 10**: Production Deployment (Railway + Vercel)
+- Phase 1-7: Core functionality (Auth, Users, Frontend, Logging)
+- Phase 8: Documentation (README, Swagger, Winston logging)
+- Phase 9: Containerization & CI/CD (Docker, GitHub Actions)
+- Phase 10: Production Deployment (Railway + Vercel)
 
-## ✨ Features
+## Features
 
-- ✅ User Registration with email/password validation
-- ✅ User Login with JWT access and refresh tokens
-- ✅ Dual token strategy (15m access, 7d refresh)
-- ✅ Profile management (view and update)
-- ✅ User listing with pagination
-- ✅ Protected routes with JWT guards
-- ✅ Request/response logging with Winston
-- ✅ Interactive Swagger API documentation
-- ✅ Responsive React UI with Tailwind CSS v4
-- ✅ Global error handling and validation
-- ✅ Docker multi-stage builds
-- ✅ Automatic database migrations on deployment
-- ✅ CI/CD pipeline with GitHub Actions
-- ✅ Production deployment (Railway + Vercel)
+- User Registration with email/password validation
+- User Login with JWT access and refresh tokens
+- Dual token strategy (15m access, 7d refresh)
+- Profile management (view and update)
+- User listing with pagination
+- Protected routes with JWT guards
+- Request/response logging with Winston
+- Interactive Swagger API documentation
+- Responsive React UI with Tailwind CSS v4
+- Global error handling and validation
+- Docker multi-stage builds
+- Automatic database migrations on deployment
+- CI/CD pipeline with GitHub Actions
+- Production deployment (Railway + Vercel)
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -56,14 +56,14 @@ All 10 development phases completed and deployed:
 | CI/CD | GitHub Actions |
 | Hosting | Railway + Vercel |
 
-## 📦 Prerequisites
+## Prerequisites
 
 - Node.js 20+
 - PostgreSQL 16+ (or Docker)
 - npm or yarn
 - Docker & Docker Compose (optional, recommended)
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
 # Clone repository
@@ -96,7 +96,7 @@ Access the application at:
 - **Backend API**: http://localhost:3000/api
 - **API Docs**: http://localhost:3000/api/docs (Swagger UI)
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Backend (`backend/.env`)
 
@@ -128,7 +128,7 @@ CORS_ORIGIN=http://localhost:5173
 VITE_API_URL=http://localhost:3000/api
 ```
 
-## 🗄 Database Setup
+## Database Setup
 
 ```bash
 # Start PostgreSQL with Docker
@@ -142,7 +142,7 @@ npm run migration:run
 npm run migration:show
 ```
 
-## 🚀 Running the Application
+## Running the Application
 
 ### Development Mode
 
@@ -165,7 +165,7 @@ cd frontend && npm run dev
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
-## 📚 API Documentation
+## API Documentation
 
 Interactive Swagger documentation is available at **http://localhost:3000/api/docs** when the backend is running.
 
@@ -218,7 +218,7 @@ curl -X GET http://localhost:3000/api/users/profile \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 aura/
@@ -253,7 +253,7 @@ aura/
 └── README.md                # This file
 ```
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 ```bash
 # Backend linting and build validation
@@ -277,9 +277,9 @@ GitHub Actions automatically runs on every push:
 
 **Note**: Unit and E2E test suites are planned for future enhancements.
 
-## 🚢 Deployment
+## Deployment
 
-**Status**: ✅ **LIVE IN PRODUCTION**
+**Status**: LIVE IN PRODUCTION
 
 ### Production URLs
 - **Frontend**: https://user-management-frontend-lake.vercel.app
@@ -302,7 +302,7 @@ GitHub Actions automatically runs on every push:
 
 For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-## 🏗 Technical Decisions
+## Technical Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
@@ -322,7 +322,7 @@ For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 For detailed architectural decision records (ADRs), see the commits and inline documentation.
 
-## 🔮 Future Improvements
+## Future Improvements
 
 **Planned Enhancements:**
 - Email verification with confirmation tokens
@@ -337,7 +337,7 @@ For detailed architectural decision records (ADRs), see the commits and inline d
 - Database backups and disaster recovery
 - Multi-language support (i18n)
 
-## 📄 License
+## License
 
 MIT
 

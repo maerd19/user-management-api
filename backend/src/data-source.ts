@@ -35,14 +35,14 @@ if (require.main === module) {
   
   AppDataSource.initialize()
     .then(async () => {
-      console.log('✅ Data Source initialized');
+      console.log('Data Source initialized');
       await AppDataSource.runMigrations();
-      console.log('✅ Migrations completed');
+      console.log('Migrations completed');
       await AppDataSource.destroy();
       process.exit(0);
     })
     .catch((error) => {
-      console.error('❌ Error during migration:', error);
+      console.error('Error during migration:', error);
       process.exit(1);
     });
 }
