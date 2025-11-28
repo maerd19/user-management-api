@@ -2,7 +2,11 @@
 set -e
 
 echo "🔄 Running database migrations..."
-npm run migration:run
+if npm run migration:run; then
+  echo "✅ Migrations completed successfully"
+else
+  echo "⚠️  Migration failed, but continuing..."
+fi
 
 echo "🚀 Starting application..."
 exec dumb-init node dist/main
