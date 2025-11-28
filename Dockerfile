@@ -35,11 +35,8 @@ COPY backend/package*.json ./
 RUN npm ci --only=production && \
     npm cache clean --force
 
-# Copy built files from builder stage
+# Copy built files from builder stage (includes compiled migrations)
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-
-# Copy migrations
-COPY --from=builder --chown=nodejs:nodejs /app/src/database/migrations ./dist/database/migrations
 
 # Create logs directory
 RUN mkdir -p logs && chown -R nodejs:nodejs logs
