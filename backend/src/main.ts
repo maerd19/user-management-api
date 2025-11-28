@@ -76,8 +76,9 @@ async function bootstrap() {
     customCss: '.swagger-ui .topbar { display: none }',
   });
 
-  const port = configService.get<number>('app.port') || 3000;
-  await app.listen(port);
+  const port =
+    process.env.PORT || configService.get<number>('app.port') || 3000;
+  await app.listen(port, '0.0.0.0');
 
   const logger = app.get<Logger>(WINSTON_MODULE_NEST_PROVIDER);
   logger.log(
