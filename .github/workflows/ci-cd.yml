@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, master, develop]
 
+permissions:
+  contents: read
+  security-events: write
+
 env:
   NODE_VERSION: '20'
 
@@ -113,7 +117,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
         if: always()
