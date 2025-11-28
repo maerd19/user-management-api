@@ -9,7 +9,7 @@ import { Response } from 'express';
 
 interface ErrorResponse {
   message?: string | string[];
-  errors?: any;
+  errors?: Record<string, unknown>;
 }
 
 @Catch()
@@ -20,7 +20,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string | string[] = 'Internal server error';
-    let errors: any = null;
+    let errors: Record<string, unknown> | null = null;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();

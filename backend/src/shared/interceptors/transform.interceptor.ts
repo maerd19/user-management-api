@@ -22,11 +22,18 @@ export class TransformInterceptor<T>
     next: CallHandler,
   ): Observable<Response<T>> {
     return next.handle().pipe(
-      map((data) => ({
-        success: true,
-        data,
-        message: data?.message || undefined,
-      })),
+      map((data: T) => {
+        let message: string | undefined;
+        if (typeof data === 'object' && data !== null && 'message' in data) {
+          const dataWithMessage = data as { message?: string };
+          message = dataWithMessage.message;
+        }
+        return {
+          success: true,
+          data,
+          message,
+        };
+      }),
     );
   }
 }

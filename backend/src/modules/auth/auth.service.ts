@@ -43,7 +43,8 @@ export class AuthService {
 
     await this.userRepository.save(user);
 
-    const { password: _, ...result } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: userPassword, ...result } = user;
     return result;
   }
 
@@ -67,7 +68,8 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.email);
 
-    const { password: _, ...userWithoutPassword } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: userPassword, ...userWithoutPassword } = user;
 
     return {
       user: userWithoutPassword,

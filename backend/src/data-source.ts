@@ -1,12 +1,11 @@
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import * as dotenv from 'dotenv';
 
-// Only load .env in development
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+  dotenv.config();
 }
 
-// Support both DATABASE_URL (Railway) and individual variables (local dev)
-const dataSourceConfig: any = {
+const baseConfig: Partial<DataSourceOptions> = {
   type: 'postgres',
   entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
@@ -14,25 +13,30 @@ const dataSourceConfig: any = {
   logging: true,
 };
 
+let dataSourceConfig: DataSourceOptions;
+
 if (process.env.DATABASE_URL) {
-  // Production: Use DATABASE_URL from Railway
-  dataSourceConfig.url = process.env.DATABASE_URL;
-  dataSourceConfig.ssl = { rejectUnauthorized: false };
+  dataSourceConfig = {
+    ...baseConfig,
+    url: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  } as DataSourceOptions;
 } else {
-  // Development: Use individual variables
-  dataSourceConfig.host = process.env.DB_HOST || 'localhost';
-  dataSourceConfig.port = parseInt(process.env.DB_PORT || '5432', 10);
-  dataSourceConfig.username = process.env.DB_USERNAME || 'postgres';
-  dataSourceConfig.password = process.env.DB_PASSWORD || 'postgres';
-  dataSourceConfig.database = process.env.DB_DATABASE || 'user_management';
+  dataSourceConfig = {
+    ...baseConfig,
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    username: process.env.DB_USERNAME || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    database: process.env.DB_DATABASE || 'user_management',
+  } as DataSourceOptions;
 }
 
 export default new DataSource(dataSourceConfig);
 
-// If running directly (for migrations), initialize and run
-if (require.main === module) {
+if (typeof require !== 'undefined' && require.main === module) {
   const AppDataSource = new DataSource(dataSourceConfig);
-  
+
   AppDataSource.initialize()
     .then(async () => {
       console.log('Data Source initialized');

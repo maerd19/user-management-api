@@ -27,25 +27,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
 
   login: async (email: string, password: string) => {
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      const { user, accessToken, refreshToken } = response.data.data;
-      
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      
-      set({ user, isAuthenticated: true });
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/auth/login', { email, password });
+    const { user, accessToken, refreshToken } = response.data.data;
+    
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    
+    set({ user, isAuthenticated: true });
   },
 
   register: async (email: string, password: string, firstName: string, lastName: string) => {
-    try {
-      await api.post('/auth/register', { email, password, firstName, lastName });
-    } catch (error) {
-      throw error;
-    }
+    await api.post('/auth/register', { email, password, firstName, lastName });
   },
 
   logout: () => {
@@ -64,7 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const response = await api.get('/users/profile');
       set({ user: response.data.data, isAuthenticated: true, isLoading: false });
-    } catch (error) {
+    } catch {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       set({ user: null, isAuthenticated: false, isLoading: false });
@@ -72,11 +64,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   updateProfile: async (data: Partial<Pick<User, 'firstName' | 'lastName'>>) => {
-    try {
-      const response = await api.patch('/users/profile', data);
-      set({ user: response.data.data });
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.patch('/users/profile', data);
+    set({ user: response.data.data });
   },
 }));

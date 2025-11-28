@@ -35,7 +35,7 @@ export const UsersPage = () => {
       const response = await api.get<{ data: UsersResponse }>(`/users?page=${page}&limit=10`);
       setUsers(response.data.data.data);
       setMeta(response.data.data.meta);
-    } catch (err) {
+    } catch {
       setError('Failed to load users');
     } finally {
       setIsLoading(false);
