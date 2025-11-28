@@ -1,463 +1,146 @@
 # Deployment Guide
 
-This guide covers deploying the User Management application to production using Docker and cloud platforms.
+This guide covers deploying the User Management application to production.
 
-## 📋 Table of Contents
+## Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [Docker Deployment](#docker-deployment)
-3. [Railway Deployment (Backend)](#railway-deployment-backend)
-4. [Vercel Deployment (Frontend)](#vercel-deployment-frontend)
-5. [Environment Variables](#environment-variables)
-6. [Database Migrations](#database-migrations)
-7. [Monitoring and Logs](#monitoring-and-logs)
-8. [Troubleshooting](#troubleshooting)
+1. [Quick Start](#quick-start)
+2. [Railway Deployment (Backend)](#railway-deployment-backend)
+3. [Vercel Deployment (Frontend)](#vercel-deployment-frontend)
+4. [Environment Variables](#environment-variables)
+5. [Troubleshooting](#troubleshooting)
 
-## Prerequisites
+## Quick Start
 
-- Docker and Docker Compose installed
-- Railway account (for backend + database)
-- Vercel account (for frontend)
-- Production environment variables ready
+The application is already deployed and running:
+- **Backend**: https://user-management-api-production-6366.up.railway.app/api
+- **Frontend**: https://user-management-frontend-lake.vercel.app
+- **API Docs**: https://user-management-api-production-6366.up.railway.app/api/docs
 
-## Docker Deployment
-
-### Local Production Build
-
+For local development with Docker:
 ```bash
-# 1. Create production environment file
-cp .env.prod.example .env.prod
-# Edit .env.prod with your production values
-
-# 2. Build and start all services
-docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
-
-# 3. Run database migrations
-docker exec aura-backend-prod npm run migration:run
-
-# 4. Verify services
-docker-compose -f docker-compose.prod.yml ps
+docker-compose up -d
 ```
 
-### Access Points
-
-- Frontend: http://localhost:8080
-- Backend API: http://localhost:3000/api
-- API Docs: http://localhost:3000/api/docs
-- PostgreSQL: localhost:5432
-
-### Useful Commands
-
-```bash
-# View logs
-docker-compose -f docker-compose.prod.yml logs -f
-
-# Stop services
-docker-compose -f docker-compose.prod.yml down
-
-# Rebuild after changes
-docker-compose -f docker-compose.prod.yml up -d --build
-
-# Clean up (WARNING: deletes data)
-docker-compose -f docker-compose.prod.yml down -v
-```
+Access at http://localhost:5173 (frontend) and http://localhost:3000/api (backend).
 
 ## Railway Deployment (Backend)
 
-Railway provides PostgreSQL + Node.js hosting with automatic deployments from GitHub.
+Railway hosts the backend API with PostgreSQL database and automatic deployments from GitHub.
 
-### Setup Steps
+### Initial Setup
 
-1. **Install Railway CLI**
-   ```bash
-   npm install -g @railway/cli
-   railway login
-   ```
+1. Create a new project on https://railway.app
+2. Connect your GitHub repository
+3. Add PostgreSQL database (Railway auto-generates `DATABASE_URL`)
+4. Configure environment variables (see below)
+5. Railway auto-deploys on push to master branch
 
-2. **Create New Project in Railway Dashboard**
-   - Go to https://railway.app
-   - Click "New Project"
-   - Select "Deploy from GitHub Repo"
-   - Choose your `user-management-api` repository
-   - Railway will auto-detect the monorepo structure
+### Key Configuration
 
-3. **Configure Service Settings**
-   - In Settings → Source:
-     - **Root Directory**: Leave EMPTY (blank)
-     - **Watch Paths**: Leave empty
-   - Railway will use the root `Dockerfile` which builds from `backend/`
+**Root Directory**: Leave empty - Railway uses the root Dockerfile which builds from `backend/`
 
-4. **Add PostgreSQL Database**
-   - In your project, click "+ New"
-   - Select "Database" → "PostgreSQL"
-   - Railway auto-generates `DATABASE_URL` and other connection variables
-   - These are automatically shared with your backend service
-
-5. **Configure Backend Environment Variables**
-   
-   In Railway dashboard (Variables tab), add these variables:
-   ```bash
-   # Generate secrets with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   JWT_ACCESS_SECRET=<32-char-secret>
-   JWT_REFRESH_SECRET=<different-32-char-secret>
-   JWT_ACCESS_EXPIRATION=15m
-   JWT_REFRESH_EXPIRATION=7d
-   NODE_ENV=production
-   CORS_ORIGIN=*
-   ```
-   
-   **Important:** 
-   - Do NOT add `PORT` - Railway provides this automatically
-   - Do NOT add `DATABASE_URL` - Auto-provided by PostgreSQL service
-   - Do NOT add individual DB variables (DB_HOST, DB_PORT, etc.) - Use `DATABASE_URL`
-
-6. **Generate Public Domain**
-   - Go to Settings → Networking
-   - Click "Generate Domain"
-   - Enter port: `8080` (Railway auto-assigns, but confirm in logs)
-   - Copy the generated URL: `https://your-app.up.railway.app`
-
-7. **Deploy**
-   - Railway automatically deploys on push to `master` branch
-   - Or deploy manually: `railway up` (from backend directory)
-
-8. **Migrations Run Automatically**
-   - Railway runs migrations on every deployment via `docker-entrypoint.sh`
-   - Check deployment logs to verify:
-     ```
-     ✅ Data Source initialized
-     ✅ Migrations completed
-     ```
-
-9. **Verify Deployment**
-   ```bash
-   # Test API
-   curl https://your-app.up.railway.app/api
-   
-   # View Swagger docs
-   open https://your-app.up.railway.app/api/docs
-   
-   # Test registration
-   curl -X POST https://your-app.up.railway.app/api/auth/register \
-     -H "Content-Type: application/json" \
-     -d '{"email":"test@example.com","password":"Test123!","firstName":"Test","lastName":"User"}'
-   ```
-
-### Important Configuration Notes
-
-**Root Dockerfile:**
-The project uses a root `Dockerfile` that copies from `backend/` directory:
-```dockerfile
-# Copies backend package files
-COPY backend/package*.json ./
-
-# Copies backend source
-COPY backend/ .
+**Environment Variables** (set in Railway dashboard):
+```bash
+JWT_ACCESS_SECRET=<generate-32-char-secret>
+JWT_REFRESH_SECRET=<generate-different-32-char-secret>
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+NODE_ENV=production
+CORS_ORIGIN=https://your-frontend.vercel.app
 ```
 
-**Database Configuration:**
-The backend `database.config.ts` supports both development and production:
-- **Development**: Uses individual env vars (DB_HOST, DB_PORT, etc.)
-- **Production**: Uses `DATABASE_URL` from Railway
-- SSL is automatically enabled in production
+**Important**: Do NOT set `PORT` or `DATABASE_URL` - Railway provides these automatically.
 
-**Port Configuration:**
-Railway assigns ports dynamically via `$PORT` environment variable. The backend reads:
-```typescript
-const port = process.env.PORT || configService.get<number>('app.port') || 3000;
+### Database Migrations
+
+Migrations run automatically on each deployment via `docker-entrypoint.sh`. Check deployment logs for:
+```
+Data Source initialized
+Migrations completed
 ```
 
-**Custom Start Command:**
-⚠️ **IMPORTANT:** Do NOT set a "Custom Start Command" in Railway Settings → Deploy.
-Leave it empty so Railway uses the Dockerfile's `CMD` which runs `docker-entrypoint.sh`.
-This script executes migrations before starting the app.
-
-### Troubleshooting
-
-**Build fails with "Dockerfile not found":**
-- Ensure Root Directory is EMPTY in Settings
-- Dockerfile must be in repository root
-- Push changes to trigger rebuild
-
-**Connection refused errors:**
-- Check app is listening on `0.0.0.0` not `localhost`
-- Verify PORT is not hardcoded
-- Check public domain port matches app port
-
-**Database connection timeout:**
-- Verify `DATABASE_URL` is set (check Variables tab)
-- Ensure PostgreSQL service is running
-- Check database service is in same project
+To run migrations manually if needed:
+```bash
+railway shell
+node dist/data-source.js
+```
 
 ## Vercel Deployment (Frontend)
 
-### Setup Steps
+### Setup
 
-1. **Install Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
+1. Connect GitHub repository to Vercel
+2. Configure build settings:
+   - Framework: Vite
+   - Root Directory: `frontend`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
 
-2. **Login and Initialize**
-   ```bash
-   cd frontend
-   vercel login
-   vercel
-   ```
-
-3. **Configure Environment Variables**
-   
-   In Vercel dashboard (Settings → Environment Variables):
+3. Set environment variable:
    ```
    VITE_API_URL=https://your-backend.railway.app/api
    ```
 
-4. **Deploy**
-   ```bash
-   # Production deployment
-   vercel --prod
-   ```
-
-### Vercel Configuration
-
-The `vercel.json` is already configured in the frontend directory.
-
-### Automatic Deployments
-
-Connect your GitHub repository to Vercel for automatic deployments:
-- Push to `main` → Production deployment
-- Push to other branches → Preview deployments
+4. Deploy - Vercel auto-deploys on push to master
 
 ## Environment Variables
 
 ### Backend (Railway)
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `DATABASE_URL` | PostgreSQL connection | Auto-provided by Railway | ✅ Auto |
-| `JWT_ACCESS_SECRET` | Access token secret (32+ chars) | Generate with crypto | ✅ Manual |
-| `JWT_REFRESH_SECRET` | Refresh token secret (32+ chars) | Generate with crypto | ✅ Manual |
-| `JWT_ACCESS_EXPIRATION` | Access token lifetime | `15m` | ✅ Manual |
-| `JWT_REFRESH_EXPIRATION` | Refresh token lifetime | `7d` | ✅ Manual |
-| `NODE_ENV` | Environment | `production` | ✅ Manual |
-| `CORS_ORIGIN` | Allowed frontend origins | `*` or `https://app.vercel.app` | ✅ Manual |
-| `PORT` | Server port | Auto-provided by Railway | ❌ Don't set |
-| `DB_HOST`, `DB_PORT`, etc. | Individual DB vars | Not needed with DATABASE_URL | ❌ Don't set |
+| Variable | Required | Example |
+|----------|----------|---------|
+| `DATABASE_URL` | Auto-provided | (Railway generates) |
+| `JWT_ACCESS_SECRET` | Yes | Generate 32+ char random string |
+| `JWT_REFRESH_SECRET` | Yes | Generate 32+ char random string |
+| `JWT_ACCESS_EXPIRATION` | Yes | `15m` |
+| `JWT_REFRESH_EXPIRATION` | Yes | `7d` |
+| `NODE_ENV` | Yes | `production` |
+| `CORS_ORIGIN` | Yes | `https://your-app.vercel.app` |
+| `PORT` | Auto-provided | (Railway assigns) |
 
 ### Frontend (Vercel)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_URL` | Backend API URL | `https://api.railway.app/api` |
-
-## Database Migrations
-
-### Automatic Migrations (Railway)
-
-Migrations run **automatically on every deployment** via the `docker-entrypoint.sh` script:
-
-```bash
-# Migrations are executed before app starts
-# Check deployment logs for:
-✅ Data Source initialized
-✅ Migrations completed
-```
-
-### Manual Migration Management (Local)
-
-```bash
-# Create new migration locally
-npm run migration:generate -- src/database/migrations/MigrationName
-
-# Run migrations locally
-npm run migration:run
-
-# Revert last migration locally
-npm run migration:revert
-
-# Commit and push - Railway will auto-apply on deploy
-git add .
-git commit -m "feat: add new migration"
-git push origin master
-```
-
-### Manual Migrations on Railway (if needed)
-
-```bash
-# Link to Railway project
-cd backend
-railway link
-
-# Open Railway shell
-railway shell
-
-# Inside Railway shell, run:
-node dist/data-source.js
-```
-
-### Docker
-
-```bash
-# Run migrations in Docker
-docker exec aura-backend-prod npm run migration:run
-
-# Check migration status
-docker exec aura-backend-prod npm run migration:show
-```
-
-## Monitoring and Logs
-
-### Railway
-
-```bash
-# View logs
-railway logs
-
-# Follow logs in real-time
-railway logs --follow
-```
-
-### Docker
-
-```bash
-# View logs for all services
-docker-compose -f docker-compose.prod.yml logs -f
-
-# View logs for specific service
-docker logs -f aura-backend-prod
-docker logs -f aura-frontend-prod
-```
-
-### Vercel
-
-```bash
-# View deployment logs
-vercel logs <deployment-url>
-```
+| Variable | Value |
+|----------|-------|
+| `VITE_API_URL` | `https://your-backend.railway.app/api` |
 
 ## Troubleshooting
 
-### Common Issues
+### Backend Issues
 
-**1. Backend won't start**
-```bash
-# Check logs
-railway logs
-# or
-docker logs aura-backend-prod
+**Build fails**: Ensure Dockerfile is in repository root and Root Directory is empty in Railway settings.
 
-# Verify environment variables
-railway variables
-```
+**Database connection fails**: Verify `DATABASE_URL` exists in Railway variables. PostgreSQL service must be in same project.
 
-**2. Database connection fails**
-```bash
-# Test connection
-railway run npm run migration:show
+**Migrations don't run**: Check deployment logs for migration output. Run manually if needed: `railway shell` then `node dist/data-source.js`
 
-# Check DATABASE_URL is set correctly
-railway variables | grep DATABASE
-```
+**CORS errors**: Update `CORS_ORIGIN` to match your Vercel frontend URL.
 
-**3. CORS errors**
-```bash
-# Verify CORS_ORIGIN matches frontend URL
-railway variables | grep CORS
+### Frontend Issues
 
-# Update if needed
-railway variables set CORS_ORIGIN=https://your-app.vercel.app
-```
+**Can't reach backend**: Verify `VITE_API_URL` in Vercel environment variables points to your Railway backend.
 
-**4. Migrations fail on deployment**
-```bash
-# Check deployment logs for migration errors
-# Common issues:
-
-# Issue: "relation 'users' does not exist"
-# Solution: Migrations didn't run - check logs for:
-#   - ✅ Migrations completed
-#   - If missing, redeploy or run manually
-
-# Issue: "Cannot find module 'dotenv'"
-# Solution: data-source.ts should skip dotenv in production:
-#   if (process.env.NODE_ENV !== 'production') {
-#     require('dotenv').config();
-#   }
-
-# Manual migration if auto-migration fails:
-railway shell
-node dist/data-source.js
-```
-
-**5. Frontend can't reach backend**
-- Verify `VITE_API_URL` in Vercel environment variables
-- Check backend health: `curl https://your-backend.railway.app/api`
-- Verify CORS settings in backend
+**Build fails**: Check that frontend dependencies are installed and `package-lock.json` is committed.
 
 ### Health Checks
 
-**Backend:**
 ```bash
+# Backend health
 curl https://your-backend.railway.app/api
-# Should return: {"message":"Welcome to User Management API"}
+
+# View API documentation
+open https://your-backend.railway.app/api/docs
+
+# Frontend health
+open https://your-app.vercel.app
 ```
 
-**Frontend:**
-```bash
-curl https://your-app.vercel.app/health
-# Should return: healthy
-```
+## Monitoring
 
-**Database:**
-```bash
-railway run npm run migration:show
-# Should list all migrations
-```
-
-## Security Checklist
-
-Before deploying to production:
-
-- [ ] Change all JWT secrets to strong random values (32+ characters)
-- [ ] Set secure database password
-- [ ] Configure CORS_ORIGIN to specific frontend domain (not `*`)
-- [ ] Enable HTTPS (handled by Railway/Vercel)
-- [ ] Review and rotate secrets regularly
-- [ ] Enable rate limiting (implement in Phase 8+)
-- [ ] Set up monitoring and alerting
-- [ ] Configure backup strategy for database
-- [ ] Review and update dependencies regularly
-- [ ] Enable security scanning in CI/CD
-
-## Backup and Recovery
-
-### Database Backup (Railway)
-
-```bash
-# Export database
-railway run pg_dump $DATABASE_URL > backup.sql
-
-# Restore database
-railway run psql $DATABASE_URL < backup.sql
-```
-
-### Docker Backup
-
-```bash
-# Export database
-docker exec aura-postgres-prod pg_dump -U postgres user_management > backup.sql
-
-# Restore database
-docker exec -i aura-postgres-prod psql -U postgres user_management < backup.sql
-```
-
-## Scaling Considerations
-
-- **Railway**: Auto-scales based on usage, configure in dashboard
-- **Vercel**: Auto-scales globally on Edge Network
-- **Database**: Monitor connections, consider connection pooling for high traffic
-- **Caching**: Implement Redis for session/token caching (future enhancement)
+**Railway logs**: `railway logs` or check dashboard  
+**Vercel logs**: View in Vercel dashboard under Deployments
 
 ---
 
-**Need Help?** Check the main [README.md](../README.md) or review application logs for detailed error messages.
+For local development setup, see main [README.md](README.md)
