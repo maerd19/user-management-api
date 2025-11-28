@@ -1,7 +1,9 @@
 import { DataSource } from 'typeorm';
-import { config } from 'dotenv';
 
-config();
+// Only load .env in development
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 // Support both DATABASE_URL (Railway) and individual variables (local dev)
 const dataSourceConfig: any = {
